@@ -4,7 +4,7 @@
 module Guppi
   def google_api_key
     # FIXME: pull this from the app's environment.rb
-    ''
+    'ABQIAAAAg9gz44AM9nwgUBOD1z2EahSYA1as7brELYKObKnR1bLoBESLexRL2Pzmarkta0Xwrhj5oCm0tLjIuA'
   end
   
   module JavascriptHelpers
@@ -14,11 +14,14 @@ module Guppi
     end
     def load_jsapi
       # also checks for and adds in your Google API key if provided
-      %{<script src="http://www.google.com/jsapi#{"?key=" + google_api_key if google_api_key} type="text/javascript"></script>}
+      %{<script src="http://www.google.com/jsapi#{"?key=" + google_api_key if Google_API_Key} type="text/javascript"></script>}
     end
     def js_wrapper(js_code)
       # HACK: there may be a built-in rails method that does this alreadys
       %{<script language="Javascript" type="text/javascript">#{js_code}</script>}
+    end
+    def parse_lib_list(js_libs)
+      js_libs.map{|lib,ver| google_load lib, ver, uncompressed}
     end
     def guppi_load(*params)
       # find out if we want the compressed or uncompressed version of the js libs
@@ -29,10 +32,10 @@ module Guppi
       no_jsapi = !!params.delete(:no_jsapi)
       
       # we will assume the rest of the hash values are lib and version pairs
-      js_libs_to_load = params.map{|lib,ver| google_load lib, ver, uncompressed}
+      js_libs_to_load = parse_lib_list params
       
       # HACK: gotta be a cleaner way to do this
-      (no_jsapi ? [] : load_jsapi) + js_wrapper(lib_array.join('\n'))
+      (no_jsapi ? [] : load_jsapi) + js_wrapper(js_libs_to_load.join("\n"))
     end
   end
   
